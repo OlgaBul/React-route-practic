@@ -2,8 +2,23 @@ import { Link, Outlet } from "react-router-dom";
 
 const Layout = () => {
   return (
-    <div>
-      <nav style={{ display: "flex", justifyContent:"center", listStyle: "none", gap: "55px" }}>
+    <div
+      style={{
+        position: "absolute",
+        top: "50%",
+        left: " 50%",
+        transform: "translate(-50%, -50%)",
+      }}
+    >
+      <nav
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          listStyle: "none",
+          gap: "55px",
+          marginBottom: '40px'
+        }}
+      >
         <li>
           {/* <NavLink to="/">Главная</NavLink> */}
           <Link to="/">Главная</Link>
@@ -15,7 +30,7 @@ const Layout = () => {
         </li>
       </nav>
       <main>
-        <Outlet/>
+        <Outlet />
       </main>
     </div>
   );
