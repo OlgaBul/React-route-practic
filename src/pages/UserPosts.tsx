@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import Pagination from "../features/pagination/Pagination";
 import { POSTS_PER_PAGE } from "../shared/constants/constants";
 import usePagination from "../shared/hooks/usePagination";
+import useValidateQueryParams from "../shared/hooks/useValidateQueryParams";
 
 interface Posts {
   userId: string;
@@ -14,13 +15,23 @@ interface Posts {
   body: string;
 }
 
+type SortOrder = "asc" | "desc";
+
 const UserPosts = () => {
   const { userId } = useParams<{ userId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  let sort = searchParams.get("sort") || "asc";
-  let search = searchParams.get("search") || "";
-  let page = parseInt(searchParams.get("_page") || "1");
+  const {
+    sort: validatedSort,
+    page: validatedPage,
+    limit: validatedLimit,
+    search: validatedSearch,
+  } = useValidateQueryParams({
+    defaultSort: "asc",
+    defaultPage: 1,
+    defaultLimit: POSTS_PER_PAGE,
+    totalPages: 0,
+  });
 
   const {
     data: posts,
@@ -34,18 +45,20 @@ const UserPosts = () => {
     return posts
       .filter((post) => post.userId == userId)
       .filter((post) => {
-        if (search) {
-          return post.title.toLowerCase().includes(search.toLowerCase());
+        if (validatedSearch) {
+          return post.title
+            .toLowerCase()
+            .includes(validatedSearch.toLowerCase());
         }
         return post;
       })
       .sort((a, b) => {
-        if (sort === "desc") return b.title.localeCompare(a.title);
+        if (validatedSort === "desc") return b.title.localeCompare(a.title);
         return a.title.localeCompare(b.title);
       });
-  }, [posts, userId, search, sort]);
+  }, [posts, userId, validatedSearch, validatedSort]);
 
-  const totalPages = Math.ceil(filteredSortedPosts.length / POSTS_PER_PAGE);
+  const totalPages = Math.ceil(filteredSortedPosts.length / validatedLimit);
 
   const {
     currentPage,
@@ -53,18 +66,20 @@ const UserPosts = () => {
     handlePreviousPageClick,
     handleNextPageClick,
   } = usePagination({
-    initialPage: page,
+    initialPage: validatedPage,
     onPageChange: (newPage) => {
       const newParams = new URLSearchParams(searchParams);
-      newParams.set("_page", newPage.toString());
+      newParams.set("_page", `${newPage}`);
+      newParams.set("_limit", `${POSTS_PER_PAGE}`);
       setSearchParams(newParams);
     },
   });
 
-  const currentPosts = filteredSortedPosts.slice(
-    (currentPage - 1) * POSTS_PER_PAGE,
-    currentPage * POSTS_PER_PAGE
-  );
+  const currentPosts = useMemo(() => {
+    const start = (currentPage - 1) * validatedLimit;
+    const end = currentPage * validatedLimit;
+    return filteredSortedPosts.slice(start, end);
+  }, [filteredSortedPosts, currentPage, validatedLimit]);
 
   const updateUrlParams = (params: Record<string, string>) => {
     const newParams = new URLSearchParams(searchParams);
@@ -84,11 +99,12 @@ const UserPosts = () => {
   };
   const resetFilters = () => {
     updateUrlParams({
+      _page: "1",
+      _limit: `${POSTS_PER_PAGE}`,
       search: "",
       sort: "",
     });
   };
-
 
   if (!posts) return <div>Нет постов</div>;
   if (isLoading) return <div>Loading...</div>;
@@ -104,8 +120,14 @@ const UserPosts = () => {
           alignItems: "center",
         }}
       >
-        <Search currentSearch={search} onSearchChange={updateSearchParams} />
-        <Sort currentSort={sort} onSortChange={updateSortParams} />
+        <Search
+          currentSearch={validatedSearch}
+          onSearchChange={updateSearchParams}
+        />
+        <Sort
+          currentSort={validatedSort as SortOrder}
+          onSortChange={updateSortParams}
+        />
         <button onClick={resetFilters}>Сбросить фильтры</button>
       </div>
       {totalPages > 1 ? (

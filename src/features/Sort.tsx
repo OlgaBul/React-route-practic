@@ -4,7 +4,7 @@ import type { ChangeEvent } from "react";
 type SortOrder = "asc" | "desc";
 
 interface SortProps {
-  currentSort: string;
+  currentSort: SortOrder;
   onSortChange: (value: SortOrder) => void;
 }
 
