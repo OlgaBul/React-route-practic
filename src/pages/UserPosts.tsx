@@ -2,10 +2,10 @@ import { useParams, useSearchParams } from "react-router-dom";
 import useFetch from "../shared/hooks/useFetch";
 import Search from "../features/Search";
 import Sort from "../features/Sort";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Pagination from "../features/pagination/Pagination";
 import { POSTS_PER_PAGE } from "../shared/constants/constants";
-// import usePagination from "../shared/hooks/usePagination";
+import usePagination from "../shared/hooks/usePagination";
 
 interface Posts {
   userId: string;
@@ -21,7 +21,6 @@ const UserPosts = () => {
   let sort = searchParams.get("sort") || "asc";
   let search = searchParams.get("search") || "";
   let page = parseInt(searchParams.get("_page") || "1");
-  const [currentPage, setCurrentPage] = useState(page);
 
   const {
     data: posts,
@@ -48,14 +47,24 @@ const UserPosts = () => {
 
   const totalPages = Math.ceil(filteredSortedPosts.length / POSTS_PER_PAGE);
 
+  const {
+    currentPage,
+    handlePageClick,
+    handlePreviousPageClick,
+    handleNextPageClick,
+  } = usePagination({
+    initialPage: page,
+    onPageChange: (newPage) => {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set("_page", newPage.toString());
+      setSearchParams(newParams);
+    },
+  });
+
   const currentPosts = filteredSortedPosts.slice(
     (currentPage - 1) * POSTS_PER_PAGE,
     currentPage * POSTS_PER_PAGE
   );
-
-  useEffect(() => {
-    setCurrentPage(page);
-  }, [page]);
 
   const updateUrlParams = (params: Record<string, string>) => {
     const newParams = new URLSearchParams(searchParams);
@@ -80,19 +89,6 @@ const UserPosts = () => {
     });
   };
 
-  const handlePageClick = (newPage: number) => {
-    updateUrlParams({ _page: newPage.toString() });
-  };
-
-  const handlePreviousPageClick = () => {
-    const newPage = currentPage - 1;
-    updateUrlParams({ _page: newPage.toString() });
-  };
-
-  const handleNextPageClick = () => {
-    const newPage = currentPage + 1;
-    updateUrlParams({ _page: newPage.toString() });
-  };
 
   if (!posts) return <div>Нет постов</div>;
   if (isLoading) return <div>Loading...</div>;
@@ -167,7 +163,7 @@ const UserPosts = () => {
                   fontSize: "40px",
                 }}
               >
-                Посты не найдены
+                Посты не найдены, совсем не найдены
               </b>
             </p>
           )}

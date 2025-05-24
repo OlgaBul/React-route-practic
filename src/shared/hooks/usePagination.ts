@@ -1,16 +1,46 @@
-// import { useState } from "react";
+import { useState } from "react";
 
-// const usePagination = <T>(items: T[], POSTS_PER_PAGE: number) => {
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const totalPages = Math.ceil(items.length / POSTS_PER_PAGE);
+interface UsePaginationProps {
+  initialPage: number;
+  onPageChange?: (page: number) => void;
+}
 
-//   const handlePreviousPage = () => {};
+interface UsePaginationReturn {
+  currentPage: number;
+  handlePageClick: (page: number) => void;
+  handlePreviousPageClick: () => void;
+  handleNextPageClick: () => void;
+}
 
-//   const handleNextPage = () => {};
+function usePagination ({
+  initialPage = 1,
+  onPageChange,
+}: UsePaginationProps): UsePaginationReturn {
+  const [currentPage, setCurrentPage] = useState(initialPage);
 
-//   const handlePageClick = () => {};
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
+    if (onPageChange) onPageChange(page);
+  };
 
-//   return { handlePreviousPage, handleNextPage, handlePageClick };
-// };
+  const handlePreviousPageClick = () => {
+    const newPage = currentPage - 1;
+    setCurrentPage(newPage);
+    if (onPageChange) onPageChange(newPage);
+  };
 
-// export default usePagination;
+  const handleNextPageClick = () => {
+    const newPage = currentPage + 1;
+    setCurrentPage(newPage);
+    if (onPageChange) onPageChange(newPage);
+  };
+
+  return {
+    currentPage,
+    handlePageClick,
+    handlePreviousPageClick,
+    handleNextPageClick
+  };
+};
+
+export default usePagination;

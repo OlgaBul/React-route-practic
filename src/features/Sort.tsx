@@ -1,19 +1,25 @@
+import type { ChangeEvent } from "react";
+
+
+type SortOrder = "asc" | "desc";
+
 interface SortProps {
   currentSort: string;
-  onSortChange: (value: string) => void;
+  onSortChange: (value: SortOrder) => void;
 }
 
 const Sort = ({ currentSort, onSortChange }: SortProps) => {
   return (
     <label>
-      {" "}
       Сортировка:
       <select
         value={currentSort}
-        onChange={(event) => onSortChange(event.target.value)}
+        onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+          onSortChange(event.target.value as SortOrder)
+        }
       >
-        <option value="asc">По возрастанию</option>
-        <option value="desc">По убыванию</option>
+        <option value='asc'>По возрастанию</option>
+        <option value='desc'>По убыванию</option>
       </select>
     </label>
   );
