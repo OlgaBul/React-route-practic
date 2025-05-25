@@ -12,7 +12,7 @@ interface SearchProps {
   onSearchChange(value: string): void;
 }
 
-function Search({ currentSearch = "", onSearchChange }: SearchProps) {
+function SearchPosts({ currentSearch = "", onSearchChange }: SearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState<string>(currentSearch);
 
@@ -45,4 +45,4 @@ function Search({ currentSearch = "", onSearchChange }: SearchProps) {
   );
 }
 
-export default Search;
+export default SearchPosts;

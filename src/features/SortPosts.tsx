@@ -8,7 +8,7 @@ interface SortProps {
   onSortChange: (value: SortOrder) => void;
 }
 
-const Sort = ({ currentSort, onSortChange }: SortProps) => {
+const SortPosts = ({ currentSort, onSortChange }: SortProps) => {
   return (
     <label>
       Сортировка:
@@ -25,4 +25,4 @@ const Sort = ({ currentSort, onSortChange }: SortProps) => {
   );
 };
 
-export default Sort;
+export default SortPosts;

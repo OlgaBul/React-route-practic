@@ -1,12 +1,13 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import useFetch from "../shared/hooks/useFetch";
-import Search from "../features/Search";
-import Sort from "../features/Sort";
 import { useMemo } from "react";
 import Pagination from "../features/pagination/Pagination";
 import { POSTS_PER_PAGE } from "../shared/constants/constants";
 import usePagination from "../shared/hooks/usePagination";
 import useValidateQueryParams from "../shared/hooks/useValidateQueryParams";
+import SearchPosts from "../features/SearchPosts";
+import SortPosts from "../features/SortPosts";
+import useFilteredSortedPosts from "../shared/hooks/useFilteredSortedPosts";
 
 interface Posts {
   userId: string;
@@ -39,24 +40,15 @@ const UserPosts = () => {
     error,
   } = useFetch<Posts[]>(`https://jsonplaceholder.typicode.com/posts`, [userId]);
 
-  const filteredSortedPosts: Posts[] = useMemo(() => {
-    if (!posts) return [];
 
-    return posts
-      .filter((post) => post.userId == userId)
-      .filter((post) => {
-        if (validatedSearch) {
-          return post.title
-            .toLowerCase()
-            .includes(validatedSearch.toLowerCase());
-        }
-        return post;
-      })
-      .sort((a, b) => {
-        if (validatedSort === "desc") return b.title.localeCompare(a.title);
-        return a.title.localeCompare(b.title);
-      });
-  }, [posts, userId, validatedSearch, validatedSort]);
+  const filteredSortedPosts: Posts[] = useMemo(() => {
+    return  useFilteredSortedPosts(
+      userId,
+      posts,
+      validatedSearch,
+      validatedSort
+    )
+  }, [userId, posts, validatedSearch, validatedSort]);
 
   const totalPages = Math.ceil(filteredSortedPosts.length / validatedLimit);
 
@@ -90,22 +82,6 @@ const UserPosts = () => {
     setSearchParams(newParams);
   };
 
-  const updateSearchParams = (value: string) => {
-    updateUrlParams({ search: value, _page: "1" });
-  };
-
-  const updateSortParams = (value: string) => {
-    updateUrlParams({ sort: value, _page: "1" });
-  };
-  const resetFilters = () => {
-    updateUrlParams({
-      _page: "1",
-      _limit: `${POSTS_PER_PAGE}`,
-      search: "",
-      sort: "",
-    });
-  };
-
   if (!posts) return <div>Нет постов</div>;
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
@@ -120,15 +96,30 @@ const UserPosts = () => {
           alignItems: "center",
         }}
       >
-        <Search
+        <SearchPosts
           currentSearch={validatedSearch}
-          onSearchChange={updateSearchParams}
+          onSearchChange={(value: string) =>
+            updateUrlParams({ search: value, _page: "1" })
+          }
         />
-        <Sort
+        <SortPosts
           currentSort={validatedSort as SortOrder}
-          onSortChange={updateSortParams}
+          onSortChange={(value: string) =>
+            updateUrlParams({ sort: value, _page: "1" })
+          }
         />
-        <button onClick={resetFilters}>Сбросить фильтры</button>
+        <button
+          onClick={() =>
+            updateUrlParams({
+              _page: "1",
+              _limit: `${POSTS_PER_PAGE}`,
+              search: "",
+              sort: "",
+            })
+          }
+        >
+          Сбросить фильтры
+        </button>
       </div>
       {totalPages > 1 ? (
         <Pagination
